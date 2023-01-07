@@ -1,6 +1,8 @@
 
 # Net-Work library
 
+[![docs](https://readthedocs.org/projects/net-work/badge/?version=latest)](https://net-work.readthedocs.io/en/latest/)
+
 This repository provides the python module `net_work`, which enables
 distributed compute across multiple hosts with a shared filesystem between them.
 
