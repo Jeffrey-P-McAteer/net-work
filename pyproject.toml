@@ -1,0 +1,10 @@
+[build-system]
+requires = []
+# build-backend = "flit_core.buildapi"
+
+[project]
+name = "net-work"
+authors = [{name = "Jeffrey McAteer", email = "jeffrey@jmcateer.com"}]
+dynamic = ["version", "description"]
+
+
