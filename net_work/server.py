@@ -6,16 +6,25 @@ import subprocess
 import time
 import traceback
 import threading
+import platform
 
-try:
-  import wx
-except:
-  traceback.print_exc()
-  subprocess.run([
-    sys.executable, *('-m pip install --user wxPython'.split())
-  ])
-  import wx
-import wx.adv
+wx = None
+
+# We only use wx on windows machines for system tray GUIs,
+# linux is cli-only.
+if 'win' in platform.system().lower():
+  try:
+    try:
+      import wx
+    except:
+      traceback.print_exc()
+      subprocess.run([
+        sys.executable, *('-m pip install --user wxPython'.split())
+      ])
+      import wx
+    import wx.adv
+  except:
+    traceback.print_exc() # For whatever reason, windows also broke, so wx == None and will behave like linux, cli-only.
 
 
 import net_work
@@ -39,88 +48,92 @@ server_t_exit_flag = False
 server_work_req_folder = ""
 server_work_return_folder = ""
 
-class TaskBarGuiIcon(wx.adv.TaskBarIcon):
-  
-  def __init__(self, parent_frame):
-    wx.adv.TaskBarIcon.__init__(self)
-
-    self.parent_frame = parent_frame
-
-    icon_file = first_existing_file(
-      r'S:\Users\jmcateer\ToolResources\net_work_tray_icon.ico',
-      r'C:\Temp\net_work_tray_icon.ico',
-      '/tmp/net_work_tray_icon.ico',
-    )
-    if icon_file is not None:
-      self.SetIcon(wx.Icon(icon_file, wx.BITMAP_TYPE_ICO))
+if wx is not None:
+  class TaskBarGuiIcon(wx.adv.TaskBarIcon):
     
+    def __init__(self, parent_frame):
+      wx.adv.TaskBarIcon.__init__(self)
 
-  
-  def CreatePopupMenu(self):
-    global server_t_exit_flag, server_work_req_folder, server_work_return_folder
-    m = wx.Menu()
+      self.parent_frame = parent_frame
 
-    m.Append(wx.ID_NEW, "net-work server running", "net-work server running")
-    m.AppendSeparator()
-
-    m.Append(wx.ID_NEW, "Working tasks sent to {}".format(server_work_req_folder), "Working tasks sent to {}".format(server_work_req_folder))
-    m.Append(wx.ID_NEW, "Returning tasks to {}".format(server_work_return_folder), "Returning tasks to {}".format(server_work_return_folder))
-    m.AppendSeparator()
-
-    m.Append(wx.ID_ANY, "Quit net-work server", "Quit net-work server")
-
-    def on_quit_clicked(event):
-      global server_t_exit_flag, frame
-
-      # print('Exiting... (event={}, id={})'.format(event, event.GetId() ))
+      icon_file = first_existing_file(
+        r'S:\Users\jmcateer\ToolResources\net_work_tray_icon.ico',
+        r'C:\Temp\net_work_tray_icon.ico',
+        '/tmp/net_work_tray_icon.ico',
+      )
+      if icon_file is not None:
+        self.SetIcon(wx.Icon(icon_file, wx.BITMAP_TYPE_ICO))
       
-      try:
-        if event.GetId() == wx.ID_NEW:
-          return # Not an exit event
-      except:
-        traceback.print_exc()
-      
-      try:
-        server_t_exit_flag = True
-        time.sleep(3)
-      except:
-        traceback.print_exc()
-      try:
-        frame.onClose(event)
-      except:
-        traceback.print_exc()
-      # sys.exit(0)
 
-    self.Bind(wx.EVT_MENU, on_quit_clicked)
+    
+    def CreatePopupMenu(self):
+      global server_t_exit_flag, server_work_req_folder, server_work_return_folder
+      m = wx.Menu()
 
-    return m
+      m.Append(wx.ID_NEW, "net-work server running", "net-work server running")
+      m.AppendSeparator()
 
-class DummyGuiFrame(wx.Frame):
-  def __init__(self):
-    wx.Frame.__init__(self, None, wx.ID_ANY, "", size=(1,1))
-    panel = wx.Panel(self)
-    self.tray_icon = TaskBarGuiIcon(self)
-    self.Bind(wx.EVT_CLOSE, self.onClose)
-  
-  def onClose(self, evt):
-    global server_t_exit_flag
-    server_t_exit_flag = True
-    self.tray_icon.RemoveIcon()
-    self.tray_icon.Destroy()
-    self.Destroy()
+      m.Append(wx.ID_NEW, "Working tasks sent to {}".format(server_work_req_folder), "Working tasks sent to {}".format(server_work_req_folder))
+      m.Append(wx.ID_NEW, "Returning tasks to {}".format(server_work_return_folder), "Returning tasks to {}".format(server_work_return_folder))
+      m.AppendSeparator()
+
+      m.Append(wx.ID_ANY, "Quit net-work server", "Quit net-work server")
+
+      def on_quit_clicked(event):
+        global server_t_exit_flag, frame
+
+        # print('Exiting... (event={}, id={})'.format(event, event.GetId() ))
+        
+        try:
+          if event.GetId() == wx.ID_NEW:
+            return # Not an exit event
+        except:
+          traceback.print_exc()
+        
+        try:
+          server_t_exit_flag = True
+          time.sleep(3)
+        except:
+          traceback.print_exc()
+        try:
+          frame.onClose(event)
+        except:
+          traceback.print_exc()
+        # sys.exit(0)
+
+      self.Bind(wx.EVT_MENU, on_quit_clicked)
+
+      return m
+
+  class DummyGuiFrame(wx.Frame):
+    def __init__(self):
+      wx.Frame.__init__(self, None, wx.ID_ANY, "", size=(1,1))
+      panel = wx.Panel(self)
+      self.tray_icon = TaskBarGuiIcon(self)
+      self.Bind(wx.EVT_CLOSE, self.onClose)
+    
+    def onClose(self, evt):
+      global server_t_exit_flag
+      server_t_exit_flag = True
+      self.tray_icon.RemoveIcon()
+      self.tray_icon.Destroy()
+      self.Destroy()
 
 
-class ServerGuiApp(wx.App):
-  def OnInit(self):
-    global frame
-    frame = DummyGuiFrame()
-    self.SetTopWindow(frame)
-    #frame.Center(wx.BOTH)
-    #frame.Show(False)
-    return True
+  class ServerGuiApp(wx.App):
+    def OnInit(self):
+      global frame
+      frame = DummyGuiFrame()
+      self.SetTopWindow(frame)
+      #frame.Center(wx.BOTH)
+      #frame.Show(False)
+      return True
 
 def run_gui_server(args: list):
   global app, server_t
+
+  if wx is None: # Linux, no wx graphics supported for now.
+    return run_server(args)
 
   app = ServerGuiApp(0)
 
