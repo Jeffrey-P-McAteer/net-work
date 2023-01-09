@@ -60,6 +60,9 @@ class TaskBarGuiIcon(wx.adv.TaskBarIcon):
     global server_t_exit_flag, server_work_req_folder, server_work_return_folder
     m = wx.Menu()
 
+    m.Append(wx.ID_NEW, "net-work server running", "net-work server running")
+    m.AppendSeparator()
+
     m.Append(wx.ID_NEW, "Working tasks sent to {}".format(server_work_req_folder), "Working tasks sent to {}".format(server_work_req_folder))
     m.Append(wx.ID_NEW, "Returning tasks to {}".format(server_work_return_folder), "Returning tasks to {}".format(server_work_return_folder))
     m.AppendSeparator()
@@ -68,30 +71,15 @@ class TaskBarGuiIcon(wx.adv.TaskBarIcon):
 
     def on_quit_clicked(event):
       global server_t_exit_flag, frame
-      print('Exiting... (event={}, id={})'.format(event, dir(event) ))
-      event_d = {}
-      for possible_fn in dir(event):
-        print('possible_fn = {}'.format(possible_fn))
-        try:
-          event_d[possible_fn] = getattr(event, possible_fn)()
-          continue
-        except:
-          pass
-        try:
-          event_d[possible_fn] = getattr(event, possible_fn)(None)
-          continue
-        except:
-          pass
-        try:
-          event_d[possible_fn] = getattr(event, possible_fn)
-          continue
-        except:
-          pass
-        if possible_fn in event_d:
-          print('event_d[{}] = {}'.format(possible_fn, event_d[possible_fn]))
 
-      print('event_d={}'.format(event_d))
-
+      # print('Exiting... (event={}, id={})'.format(event, event.GetId() ))
+      
+      try:
+        if event.GetId() == wx.ID_NEW:
+          return # Not an exit event
+      except:
+        traceback.print_exc()
+      
       try:
         server_t_exit_flag = True
         time.sleep(3)
