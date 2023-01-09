@@ -137,11 +137,14 @@ class NetWork:
       return traceback.format_exc()
     return None
 
-  def poll_any_work_req_dicts(self, poll_interval_median_s=0.5, poll_interval_dev=0.4):
+  def poll_any_work_req_dicts(self, poll_interval_median_s=0.5, poll_interval_dev=0.4, should_continue_polling_fn=None):
     poll_interval_min_s = max(0, poll_interval_median_s - poll_interval_dev)
     poll_interval_max_s = poll_interval_median_s + poll_interval_dev
 
-    while True:
+    if should_continue_polling_fn is None:
+      should_continue_polling_fn = lambda: True
+
+    while should_continue_polling_fn():
 
       # We sleep for random times to reduce network lock-file race-cases.
       time.sleep(random.uniform(poll_interval_min_s, poll_interval_max_s))
