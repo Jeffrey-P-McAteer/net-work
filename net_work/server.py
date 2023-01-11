@@ -1,5 +1,4 @@
 
-from http import server
 import os
 import sys
 import subprocess
@@ -119,7 +118,7 @@ class ServerGuiApp(wx.App):
     #frame.Show(False)
     return True
 
-def run_gui_server(args: list):
+def run_gui_server(args):
   global app, server_t
 
   app = ServerGuiApp(0)
@@ -134,7 +133,7 @@ def run_gui_server(args: list):
   print('App constructed, running GUI loop...')
   app.MainLoop()
 
-def run_server(args: list):
+def run_server(args):
   global server_t_exit_flag, server_work_req_folder, server_work_return_folder
   # remove args until we hit the first one beginning with '-'
   while len(args) > 0 and not args[0].startswith('-'):
@@ -191,7 +190,7 @@ def run_server(args: list):
         })
         
       else:
-        raise Exception(f'Unknown work dictionary={work_d}')
+        raise Exception('Unknown work dictionary={}'.format(work_d))
     except:
       traceback.print_exc()
       time.sleep(1)

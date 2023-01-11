@@ -16,6 +16,8 @@ except:
   import net_work
 
 WORK_DIR = '/tmp/test_net_work_dir'
+if not os.path.exists('/tmp') and os.path.exists(r'C:\Temp'):
+  WORK_DIR = r'C:\Temp\test_net_work_dir'
 
 def run_server_via_python():
   net_work.run_server(['-req', WORK_DIR])

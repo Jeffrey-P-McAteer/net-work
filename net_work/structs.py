@@ -119,7 +119,7 @@ class NetWork:
       return json.load(fd)
 
 
-  def run_cmd_sync(self, cmd_line: list):
+  def run_cmd_sync(self, cmd_line):
     try:
       job_id = NetWork.gen_job_id()
       self.write_work_req_file(job_id, {
