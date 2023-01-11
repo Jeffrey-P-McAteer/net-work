@@ -17,9 +17,7 @@ if 'win' in platform.system().lower():
       import wx
     except:
       traceback.print_exc()
-      subprocess.run([
-        sys.executable, *('-m pip install --user wxPython'.split())
-      ])
+      subprocess.run([sys.executable] + '-m pip install --user wxPython'.split() )
       import wx
     import wx.adv
   except:
